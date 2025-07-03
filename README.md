@@ -1,16 +1,17 @@
-# http-cache
-[![Build Status](https://travis-ci.org/victorspringer/http-cache.svg?branch=master)](https://travis-ci.org/victorspringer/http-cache) [![Coverage Status](https://coveralls.io/repos/github/victorspringer/http-cache/badge.svg?branch=master)](https://coveralls.io/github/victorspringer/http-cache?branch=master) [![](https://img.shields.io/badge/godoc-reference-5272B4.svg?style=flat)](https://godoc.org/github.com/victorspringer/http-cache)
+# echo-http-cache
 
 This is a high performance Golang HTTP middleware for server-side application layer caching, ideal for REST APIs.
 
-It is simple, super fast, thread safe and gives the possibility to choose the adapter (memory, Redis, DynamoDB etc).
+It is simple, superfast, thread safe and gives the possibility to choose the adapter (memory, Redis, DynamoDB etc).
 
 The memory adapter minimizes GC overhead to near zero and supports some options of caching algorithms (LRU, MRU, LFU, MFU). This way, it is able to store plenty of gigabytes of responses, keeping great performance and being free of leaks.
+
+Fork from [victorspringer/http-cache](https://github.com/victorspringer/http-cache) to support native Labstack Echo middleware and enhance some function
 
 ## Getting Started
 
 ### Installation
-`go get github.com/victorspringer/http-cache`
+`go get github.com/nhymxu/echo-http-cache`
 
 ### Usage
 This is an example of use with the memory adapter:
@@ -19,49 +20,49 @@ This is an example of use with the memory adapter:
 package main
 
 import (
-    "log"
-    "net/http"
-    "os"
-    "time"
-    
-    "github.com/victorspringer/http-cache"
-    "github.com/victorspringer/http-cache/adapter/memory"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/nhymxu/echo-http-cache"
+	"github.com/nhymxu/echo-http-cache/adapter/memory"
 )
 
 func example(w http.ResponseWriter, r *http.Request) {
-    w.Write([]byte("Ok"))
+	w.Write([]byte("Ok"))
 }
 
 func main() {
-    memcached, err := memory.NewAdapter(
-        memory.AdapterWithAlgorithm(memory.LRU),
-        memory.AdapterWithCapacity(10000000),
-    )
-    if err != nil {
-        log.Fatal(err)
-    }
+	memcached, err := memory.NewAdapter(
+		memory.AdapterWithAlgorithm(memory.LRU),
+		memory.AdapterWithCapacity(10000000),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    cacheClient, err := cache.NewClient(
-        cache.ClientWithAdapter(memcached),
-        cache.ClientWithTTL(10 * time.Minute),
-        cache.ClientWithRefreshKey("opn"),
-    )
-    if err != nil {
-        log.Fatal(err)
-    }
+	cacheClient, err := cache.NewClient(
+		cache.ClientWithAdapter(memcached),
+		cache.ClientWithTTL(10 * time.Minute),
+		cache.ClientWithRefreshKey("opn"),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    handler := http.HandlerFunc(example)
+	handler := http.HandlerFunc(example)
 
-    http.Handle("/", cacheClient.Middleware(handler))
-    http.ListenAndServe(":8080", nil)
+	http.Handle("/", cacheClient.Middleware(handler))
+	http.ListenAndServe(":8080", nil)
 }
 ```
 
 Example of Client initialization with Redis adapter:
 ```go
 import (
-    "github.com/victorspringer/http-cache"
-    "github.com/victorspringer/http-cache/adapter/redis"
+    "github.com/nhymxu/echo-http-cache"
+    "github.com/nhymxu/echo-http-cache/adapter/redis"
 )
 
 ...
@@ -72,10 +73,10 @@ import (
         },
     }
     cacheClient, err := cache.NewClient(
-        cache.ClientWithAdapter(redis.NewAdapter(ringOpt)),
-        cache.ClientWithTTL(10 * time.Minute),
-        cache.ClientWithRefreshKey("opn"),
-    )
+    cache.ClientWithAdapter(redis.NewAdapter(ringOpt)),
+    cache.ClientWithTTL(10 * time.Minute),
+    cache.ClientWithRefreshKey("opn"),
+)
 
 ...
 ```
@@ -124,9 +125,11 @@ http-cache memory adapter takes way less GC pause time, that means smaller GC ov
 - Develop MongoDB adapter
 
 ## Godoc Reference
-- [http-cache](https://godoc.org/github.com/victorspringer/http-cache)
-- [Memory adapter](https://godoc.org/github.com/victorspringer/http-cache/adapter/memory)
-- [Redis adapter](https://godoc.org/github.com/victorspringer/http-cache/adapter/redis)
+- [http-cache](https://godoc.org/github.com/nhymxu/echo-http-cache)
+- [Memory adapter](https://godoc.org/github.com/nhymxu/echo-http-cache/adapter/memory)
+- [Redis adapter](https://godoc.org/github.com/nhymxu/echo-http-cache/adapter/redis)
 
 ## License
-http-cache is released under the [MIT License](https://github.com/victorspringer/http-cache/blob/master/LICENSE).
+http-cache is released under the [MIT License](https://github.com/github.com/nhymxu/echo-http-cache/blob/master/LICENSE).
+
+Fork from [victorspringer/http-cache](https://github.com/victorspringer/http-cache) to support native Labstack Echo middleware and enhance some function

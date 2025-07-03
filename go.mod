@@ -1,4 +1,4 @@
-module github.com/victorspringer/http-cache
+module github.com/nhymxu/echo-http-cache
 
 go 1.18
 
