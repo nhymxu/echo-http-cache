@@ -81,8 +81,50 @@ import (
 ...
 ```
 
+Example with Echo framework:
+```go
+package main
+
+import (
+	"log"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/nhymxu/echo-http-cache"
+	"github.com/nhymxu/echo-http-cache/adapter/memory"
+	"github.com/labstack/echo/v4"
+)
+
+func main() {
+	memcached, err := memory.NewAdapter(
+		memory.AdapterWithAlgorithm(memory.LRU),
+		memory.AdapterWithCapacity(10000000),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cacheClient, err := cache.NewClient(
+		cache.ClientWithAdapter(memcached),
+		cache.ClientWithTTL(10 * time.Minute),
+		cache.ClientWithRefreshKey("opn"),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	e := echo.New()
+	e.Use(cacheClient.EchoMiddleware())
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Ok")
+	})
+	e.Logger.Fatal(e.Start(":8080"))
+}
+```
+
 ## Benchmarks
-The benchmarks were based on [allegro/bigache](https://github.com/allegro/bigcache) tests and used to compare it with the http-cache memory adapter.<br>
+The benchmarks were based on [allegro/bigache](https://github.com/allegro/bigcache) tests and used to compare it with the echo-http-cache memory adapter.<br>
 The tests were run using an Intel i5-2410M with 8GB RAM on Arch Linux 64bits.<br>
 The results are shown below:
 
@@ -100,21 +142,21 @@ BenchmarkBigCacheSetParallel-4                  10000000     291 ns/op    661 B/
 BenchmarkHTTPCacheMemoryAdapterGetParallel-4    50000000    56.1 ns/op      0 B/op    0 allocs/op
 BenchmarkBigCacheGetParallel-4                  10000000     163 ns/op    120 B/op    3 allocs/op
 ```
-http-cache writes are slightly faster and reads are much more faster.
+echo-http-cache writes are slightly faster and reads are much more faster.
 
 ### Garbage Collection Pause Time
 ```bash
-cache=http-cache go run benchmark_gc_overhead.go
+cache=echo-http-cache go run benchmark_gc_overhead.go
 
 Number of entries:  20000000
-GC pause for http-cache memory adapter:  2.445617ms
+GC pause for echo-http-cache memory adapter:  2.445617ms
 
 cache=bigcache go run benchmark_gc_overhead.go
 
 Number of entries:  20000000
 GC pause for bigcache:  7.43339ms
 ```
-http-cache memory adapter takes way less GC pause time, that means smaller GC overhead.
+echo-http-cache memory adapter takes way less GC pause time, that means smaller GC overhead.
 
 ## Roadmap
 - Make it compliant with RFC7234
@@ -125,7 +167,7 @@ http-cache memory adapter takes way less GC pause time, that means smaller GC ov
 - Develop MongoDB adapter
 
 ## Godoc Reference
-- [http-cache](https://godoc.org/github.com/nhymxu/echo-http-cache)
+- [echo-http-cache](https://godoc.org/github.com/nhymxu/echo-http-cache)
 - [Memory adapter](https://godoc.org/github.com/nhymxu/echo-http-cache/adapter/memory)
 - [Redis adapter](https://godoc.org/github.com/nhymxu/echo-http-cache/adapter/redis)
 
